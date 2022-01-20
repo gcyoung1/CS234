@@ -1,5 +1,7 @@
 # coding: utf-8
 """Defines some frozen lake maps."""
+import sys
+sys.path.append('c:\\users\\griff\\appdata\\local\\programs\\python\\python37\\lib\\site-packages')
 import gym
 from gym.envs.toy_text import frozen_lake, discrete
 from gym.envs.registration import register
