@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.append("c:/users/griff/appdata/local/programs/python/python37/lib/site-packages")
 import gym
 import numpy as np
 import time
