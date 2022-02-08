@@ -47,27 +47,31 @@ class NatureQN(Linear):
         ##############################################################
         ################ YOUR CODE HERE - 25-30 lines lines ################
         
-
+        input_size = n_channels * self.config.state_history
+        linear_input_size = img_height * img_width * 64
         self.q_network = nn.Sequential(
-            nn.Conv2d(24,32, 8, stride=4, padding = ((4 - 1) * 8 - 4 + 8) // 2),
+            nn.Conv2d(input_size,32, 8, stride=4, padding = ((4 - 1) * img_height - 4 + 8) // 2),
             nn.ReLU(),
-            nn.Conv2d(32, 64, 4, stride=2, padding = ((2 - 1) * 8 - 2 + 8) // 2),
+            nn.Conv2d(32, 64, 4, stride=2, padding = ((2 - 1) * img_height - 2 + 4) // 2),
             nn.ReLU(),
-            nn.Conv2d(64, 64, 3, stride=1, padding = ((1 - 1) * 8 - 1 + 8) // 2),
+            nn.Conv2d(64, 64, 3, stride=1, padding = ((1 - 1) * img_height - 1 + 3) // 2),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(896*14, 512),
+            nn.Linear(linear_input_size, 512),
+            nn.ReLU(),
             nn.Linear(512, num_actions),            
         )
+
         self.target_network = nn.Sequential(
-            nn.Conv2d(24,32, 8, stride=4, padding = ((4 - 1) * 8 - 4 + 8) // 2),
+            nn.Conv2d(input_size,32, 8, stride=4, padding = ((4 - 1) * img_height - 4 + 8) // 2),
             nn.ReLU(),
-            nn.Conv2d(32, 64, 4, stride=2, padding = ((2 - 1) * 8 - 2 + 8) // 2),
+            nn.Conv2d(32, 64, 4, stride=2, padding = ((2 - 1) * img_height - 2 + 4) // 2),
             nn.ReLU(),
-            nn.Conv2d(64, 64, 3, stride=1, padding = ((1 - 1) * 8 - 1 + 8) // 2),
+            nn.Conv2d(64, 64, 3, stride=1, padding = ((1 - 1) * img_height - 1 + 3) // 2),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(896*14, 512),
+            nn.Linear(linear_input_size, 512),
+            nn.ReLU(),
             nn.Linear(512, num_actions),            
         )
 
@@ -94,7 +98,7 @@ class NatureQN(Linear):
 
         ##############################################################
         ################ YOUR CODE HERE - 4-5 lines lines ################
-        state = state.permute((0,3,1,2))
+        state = state.transpose(1,3)
         if network == "q_network":
             return self.q_network(state)
         return self.target_network(state)

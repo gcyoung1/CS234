@@ -15,18 +15,18 @@ class config():
     record_path  = output_path + "monitor/"
 
     # model and training config
-    load_path         = "weights/model.weights_step=2000000"
+    load_path         = "weights/model_2700000.weights"
     num_episodes_test = 50
     grad_clip         = True
     clip_val          = 10
-    saving_freq       = 250000
+    saving_freq       = 100000
     log_freq          = 50
-    eval_freq         = 250000
-    record_freq       = 250000
+    eval_freq         = 100000
+    record_freq       = 100000
     soft_epsilon      = 0.05
 
     # nature paper hyper params
-    nsteps_train       = 2000000
+    nsteps_train       = 400000
     batch_size         = 32
     buffer_size        = 1000000
     target_update_freq = 10000
@@ -39,5 +39,6 @@ class config():
     lr_nsteps          = 500000
     eps_begin          = 0.5
     eps_end            = 0.1
-    eps_nsteps         = 1000000
+    eps_nsteps         = 200000 
     learning_start     = 50000
+

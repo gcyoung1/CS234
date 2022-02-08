@@ -123,8 +123,14 @@ class Linear(DQN):
 
         ##############################################################
         ##################### YOUR CODE HERE - 3-5 lines #############
-        q_samp = rewards + (gamma * target_q_values.max(axis = 1)[0])*(done_mask.int())
-        qsa = (nn.functional.one_hot(actions.long(),num_classes=num_actions)*q_values).sum(axis=1)
+        q_samp = rewards
+        discount_future = gamma*(target_q_values.max(axis = 1)[0])
+        done_mask = (1 - done_mask.int())
+        q_samp += done_mask*discount_future
+
+        action_mask = nn.functional.one_hot(actions.long(),num_classes=num_actions)
+        masked_qsa = (action_mask*q_values)
+        qsa = masked_qsa.sum(axis=1)
         return nn.functional.mse_loss(q_samp, qsa)
         ##############################################################
         ######################## END YOUR CODE #######################
@@ -152,7 +158,7 @@ if __name__ == '__main__':
 
     # exploration strategy
     exp_schedule = LinearExploration(env, config.eps_begin,
-            config.eps_end, config.eps_nsteps)
+                                     config.eps_end, config.eps_nsteps)
 
     # learning rate schedule
     lr_schedule  = LinearSchedule(config.lr_begin, config.lr_end,
