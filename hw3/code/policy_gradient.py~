@@ -189,14 +189,14 @@ class PolicyGradient(object):
 
         TODO: compute and return G_t for each timestep. Use self.config.gamma.
         """
-
+        length = len(paths[0]["reward"])
+        discounts = np.geomspace(1, self.config.gamma**(length - 1), num=length)
         all_returns = []
         for path in paths:
             rewards = path["reward"]
             #######################################################
             #########   YOUR CODE HERE - 5-10 lines.   ############
-            length = len(rewards)
-            discounts = np.geomspace(1, self.config.gamma**(length - 1), num=length)
+            import pdb; pdb.set_trace()
             discounted_rewards = rewards * discounts
             returns = np.flip(np.cumsum(np.flip(discounted_rewards)))
 

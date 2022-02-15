@@ -1,0 +1,7 @@
+2022-02-14 23:51:07,595:INFO: Average reward: 6.68 +/- 0.09
+2022-02-14 23:58:32,392:INFO: Average reward: 9.36 +/- 0.17
+2022-02-15 00:05:53,266:INFO: Average reward: 13.91 +/- 0.31
+2022-02-15 00:13:16,875:INFO: Average reward: 21.53 +/- 0.59
+2022-02-15 00:20:43,516:INFO: Average reward: 28.58 +/- 0.73
+2022-02-15 00:28:05,548:INFO: Average reward: 32.37 +/- 0.95
+2022-02-15 00:35:26,631:INFO: Average reward: 42.91 +/- 1.21
