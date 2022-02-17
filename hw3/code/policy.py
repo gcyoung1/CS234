@@ -39,8 +39,9 @@ class BasePolicy:
         observations = np2torch(observations)
         #######################################################
         #########   YOUR CODE HERE - 1-3 lines.    ############
-        distribution = self.action_distribution(observations)
-        sampled_actions = distribution.sample().numpy()
+        with torch.no_grad():
+            distribution = self.action_distribution(observations)
+            sampled_actions = distribution.sample().numpy()
         #######################################################
         #########          END YOUR CODE.          ############
         return sampled_actions
@@ -82,7 +83,7 @@ class GaussianPolicy(BasePolicy, nn.Module):
         self.network = network
         #######################################################
         #########   YOUR CODE HERE - 1 line.       ############
-        self.log_std = nn.Parameter(torch.zeros(action_dim))
+        self.log_std = nn.Parameter(torch.ones(action_dim)*-1, requires_grad = True)
         #######################################################
         #########          END YOUR CODE.          ############
 

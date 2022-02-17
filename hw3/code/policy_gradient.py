@@ -77,9 +77,16 @@ class PolicyGradient(object):
         else:
             self.policy = GaussianPolicy(mlp, self.action_dim)
 
-        self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=self.lr)
-        #WHAT DO WE ASSIGN THE OPTIMIZER TO??????????
-        
+        self.optimizer = torch.optim.Adam(torch.nn.Linear(1,1).parameters(), lr=self.lr)
+        for name, param in self.policy.named_parameters():
+            print(name)
+            print(param)
+            if param.requires_grad:
+                self.optimizer.add_param_group(
+                    {'params': param}
+                )
+
+        print(self.optimizer.state_dict()['state'].keys())
         #######################################################
         #########          END YOUR CODE.          ############
 
@@ -196,14 +203,14 @@ class PolicyGradient(object):
             #######################################################
             #########   YOUR CODE HERE - 5-10 lines.   ############
             length = len(rewards)
-            discounts = np.geomspace(1, self.config.gamma**(length - 1), num=length)
-            discounted_rewards = rewards * discounts
+            log_discounts = np.log(self.config.gamma) * np.geomspace(1, (length - 1), num=length)
+            discounted_rewards = np.exp(log_discounts)*rewards
             returns = np.flip(np.cumsum(np.flip(discounted_rewards)))
+            all_returns.append(returns)
 
+        returns = np.concatenate(all_returns)
             #######################################################
             #########          END YOUR CODE.          ############
-            all_returns.append(returns)
-        returns = np.concatenate(all_returns)
 
         return returns
 
@@ -280,7 +287,7 @@ class PolicyGradient(object):
         self.optimizer.zero_grad()
         distribution = self.policy.action_distribution(observations)
         log_prob_actions = distribution.log_prob(actions)
-        loss = -torch.sum(log_prob_actions * advantages)
+        loss = -torch.mean(log_prob_actions * advantages)
         loss.backward()
         self.optimizer.step()
         #######################################################

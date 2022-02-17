@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from network_utils import build_mlp, device, np2torch
-
+from general import batch_iterator 
 
 class BaselineNetwork(nn.Module):
     """
@@ -25,7 +25,6 @@ class BaselineNetwork(nn.Module):
         #######################################################
         #########   YOUR CODE HERE - 2-8 lines.   #############
         self.network = build_mlp(self.env.observation_space.shape[0], 1, self.config.n_layers, self.config.layer_size)
-        #WHAT IS THIS NETWORK FOR
         self.optimizer = torch.optim.Adam(self.network.parameters(), lr=self.lr)
 
         #######################################################
@@ -79,7 +78,8 @@ class BaselineNetwork(nn.Module):
         observations = np2torch(observations)
         #######################################################
         #########   YOUR CODE HERE - 1-4 lines.   ############
-        advantages = returns - self.forward(observations).detach().numpy()
+        with torch.no_grad():
+            advantages = returns - self.forward(observations).detach().numpy()
         #######################################################
         #########          END YOUR CODE.          ############
         return advantages
@@ -98,12 +98,12 @@ class BaselineNetwork(nn.Module):
         If you want to use mini-batch SGD, we have provided a helper function
         called batch_iterator (implemented in general.py).
         """
-        returns = np2torch(returns)
-        observations = np2torch(observations)
         #######################################################
         #########   YOUR CODE HERE - 4-10 lines.  #############
+        returns = np2torch(returns)
+        observations = np2torch(observations)
         self.optimizer.zero_grad()
-        baselines = self.network(observations).squeeze()
+        baselines = self.forward(observations).squeeze()
         loss = nn.functional.mse_loss(baselines, returns)
         loss.backward()
         self.optimizer.step()
