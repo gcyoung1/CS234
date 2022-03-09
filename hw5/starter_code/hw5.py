@@ -24,9 +24,15 @@ class LinUCB:
 		You may also want to keep track of the number of features to add new parameters for new arms
 		"""
 		#######################################################
-		#########   YOUR CODE HERE - ~4 lines.   #############
+		#########   YOUR CODE HERE - ~4 lines.	 #############
+		self.num_arms = num_arms
+		self.num_features = num_features
+		self.alpha = alpha
+		self.A = np.array([np.eye(num_features) for _ in range(self.num_arms)])
+		self.b = np.array([np.zeros(num_features) for _ in range(self.num_arms)])
+
 		#######################################################
-		#########          END YOUR CODE.          ############
+		#########	   END YOUR CODE.	   ############
 		
 
 	def choose(self, x):
@@ -43,9 +49,18 @@ class LinUCB:
 		You can return the index of the chosen action directly. No need to return a string name for the action as you did in A4
 		"""
 		#######################################################
-		#########   YOUR CODE HERE - ~5 lines.   #############
+		#########   YOUR CODE HERE - ~5 lines.	 #############
+		inverses = np.linalg.inv(self.A)
+		thetas = np.matmul(inverses, self.b[:,:,None]).squeeze(2)
+		quadratic = x@(inverses@x[:,None])
+
+		
+		p = thetas@x[:,None] + self.alpha*np.sqrt(quadratic)
+		best_action_index = np.argmax(p)
+		return best_action_index
+
 		#######################################################
-		#########          END YOUR CODE.          ############
+		#########	   END YOUR CODE.	   ############
 
 	def update(self, x, a, r):
 		"""
@@ -62,9 +77,12 @@ class LinUCB:
 		Please implement the update step for Disjoint Linear Upper Confidence Bound Bandit algorithm. 
 		"""
 		#######################################################
-		#########   YOUR CODE HERE - ~2 lines.   #############
+		#########   YOUR CODE HERE - ~2 lines.	 #############
+		self.A[a, :, :] += np.outer(x, x)
+		self.b[a, :] += r*x
+
 		#######################################################
-		#########          END YOUR CODE.          ############
+		#########	   END YOUR CODE.	   ############
 
 	def add_arm_params(self):
 		"""
@@ -72,9 +90,12 @@ class LinUCB:
 		Initialize them in the same way you did in the __init__ method
 		"""
 		#######################################################
-		#########   YOUR CODE HERE - ~2 lines.   #############
+		#########   YOUR CODE HERE - ~2 lines.	 #############
+		self.A = np.append(self.A, np.eye(self.num_features)[None,:,:], axis=0)
+		self.b = np.append(self.b, np.zeros(self.num_features)[None,:], axis=0)
+		
 		#######################################################
-		#########          END YOUR CODE.          ############
+		#########	   END YOUR CODE.	   ############
 
 
 ############ RUNNER ############

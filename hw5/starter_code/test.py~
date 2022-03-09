@@ -1,0 +1,1 @@
+sim = Simulator(num_users=10, num_arms=5, num_features=10, update_freq=20, update_arms_strategy='none')

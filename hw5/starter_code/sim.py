@@ -24,11 +24,11 @@ class Simulator:
 		self.num_features = num_features
 		self.update_freq = update_freq
 		self.update_arms_strategy = update_arms_strategy
-		self.arms = {}  ## arm_id: np.array
-		self.users = {}  ## user_id: np.array
+		self.arms = {}	## arm_id: np.array
+		self.users = {}	 ## user_id: np.array
 		self._init(means=np.arange(-5,6), scale=1.0)
-		self.steps = 0   ## number of steps since last arm update
-		self.logs = []   ## each element is of the form [user_id, arm_id, best_arm_id]
+		self.steps = 0	 ## number of steps since last arm update
+		self.logs = []	 ## each element is of the form [user_id, arm_id, best_arm_id]
 
 	def _init(self, means, scale):
 		'''
@@ -88,6 +88,7 @@ class Simulator:
 
 		Returns True if we added a new arm else False
 		'''
+		relevant_pulls = self.logs
 		if self.update_arms_strategy == 'none':
 			return False
 		if self.update_arms_strategy == 'popular':
@@ -103,9 +104,16 @@ class Simulator:
 			Don't forget to update self.num_arms
 			'''
 			#######################################################
-			#########   YOUR CODE HERE - ~8 lines.   #############
+			#########   YOUR CODE HERE - ~8 lines.	 #############
+			chosen_arms = np.array([x[1] for x in relevant_pulls])
+			unique_ids, counts = np.unique(chosen_arms, return_counts=True)
+			if len(unique_ids) < 2:
+				return False
+			max_indices = np.argsort(-counts)[:2]
+			popular_ids = unique_ids[max_indices]
+			new_arm = (self.arms[popular_ids[0]] + self.arms[popular_ids[1]])/2
 			#######################################################
-			#########          END YOUR CODE.          ############
+			#########	   END YOUR CODE.	   ############
 		if self.update_arms_strategy == 'corrective':
 			'''
 			Hints:
@@ -118,9 +126,12 @@ class Simulator:
 			Don't forget to update self.num_arms
 			'''
 			#######################################################
-			#########   YOUR CODE HERE - ~7 lines.   #############
+			#########   YOUR CODE HERE - ~7 lines.	 #############
+			corrective_arm_ids = np.array([x[2] for x in relevant_pulls if x[1] != x[2]])
+			corrective_arm_thetas = np.stack([self.arms[arm_id] for arm_id in corrective_arm_ids], axis=1)
+			new_arm = np.mean(corrective_arm_thetas, axis=1)
 			#######################################################
-			#########          END YOUR CODE.          ############
+			#########	   END YOUR CODE.	   ############
 		if self.update_arms_strategy == 'counterfactual':
 			'''
 			Hints:
@@ -128,43 +139,45 @@ class Simulator:
 			Initialize the new theta to an array of zeros and the learning rate eta to 0.1
 			Perform one update of batch gradient ascent over the logs
 			Use the update equation in the HW PDF to update the new theta
-			Note that each element in self.logs is of the form [user_id, chosen arm_id, best arm_id]
-			Note that self.arms is a dictionary of the form {arm_id: theta} where theta is np.array
-			The new ID should be the next integer in the sequence of arm IDs
-			Don't forget to update self.num_arms
 			'''
 			#######################################################
-			#########   YOUR CODE HERE - ~9 lines.   #############
+			#########   YOUR CODE HERE - ~9 lines.	 #############
+			new_arm = np.zeros(self.num_features)
+			for user_id, pulled_arm, _ in relevant_pulls:
+				new_arm -= (self.arms[pulled_arm] @ self.users[user_id]) * self.users[user_id]
+				
+			new_arm = 0.1 * new_arm
 			#######################################################
-			#########          END YOUR CODE.          ############
-		
+			#########	   END YOUR CODE.	   ############
+		self.arms[self.num_arms] = new_arm
+		self.num_arms += 1
 		return True
 
 	def step(self, user_id, arm_id):
 		'''
 		Takes a step in the simulation, calculates rewards, updates logs, increases arms, and returns the new user context
-        Args:
-            user_id: The id of the user for which the arm was chosen
-            arm_id: The id of the arm chosen
-        Returns:
-            new user_id for the next step of the simulation
-            the user context corresponding to this new user_id
-            the reward for the current user-arm interaction (0 if the best arm was chosen, -1 otherwise)
-            arm_added: boolean which is True if a new arm was added in this step and False otherwise
+	Args:
+	    user_id: The id of the user for which the arm was chosen
+	    arm_id: The id of the arm chosen
+	Returns:
+	    new user_id for the next step of the simulation
+	    the user context corresponding to this new user_id
+	    the reward for the current user-arm interaction (0 if the best arm was chosen, -1 otherwise)
+	    arm_added: boolean which is True if a new arm was added in this step and False otherwise
 		'''
 		## Update number of steps
 		self.steps += 1
-        ## Get the reward for the arm played. This also updates the logs
+	## Get the reward for the arm played. This also updates the logs
 		reward = self.get_reward(user_id, arm_id)
-        ## Update the arms (add a new arm)
+	## Update the arms (add a new arm)
 		arm_added = False
 		if self.steps % self.update_freq == 0:
 			arm_added = self.update_arms()
 			self.logs = []
 			self.steps = 0
-			#if arm_added:
-			#	print(f'Added a new arm via {self.update_arms_strategy} strategy! New number of arms is {self.num_arms}')
-        ## Get the next user context
+#			if arm_added:
+#				print(f'Added a new arm via {self.update_arms_strategy} strategy! New number of arms is {self.num_arms}. New arm is:\n{self.arms[self.num_arms-1]}')
+	## Get the next user context
 		user_ids = list(self.users.keys())
 		user = np.random.choice(user_ids)
 		return user, self.users[user], reward, arm_added
